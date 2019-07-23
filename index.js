@@ -29,11 +29,20 @@ app.post('/verify', function(req, res) {
   var message = req.body.message
   var signature = req.body.signature
 
+  var signed_time = message.split(':');
+  var time_diff = a - parseInt(signed_time[1], 10)
+
   var is_varify = bitcoinMessage.verify(message, address, signature, messagePrefix)
-  console.log(is_varify)
+
+  if(time_diff < 6000 && is_varify) {
+    var return_message = true
+  } else {
+    var return_message = false
+  }
+  console.log(return_message)
 
   res.send({
-    message: is_varify
+    message: return_message
   })
 })
 
@@ -42,13 +51,21 @@ app.post('/verify', function(req, res) {
 // about uploading goods_info
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-      cb(null, './img')
+    cb(null, './img')
   },
   
   filename: function (req, file, cb) {
-      //　Math.random().toString(36).slice(-9)で乱数を生成
-      const imageName = `${Math.random().toString(36).slice(-9)}_${Date.now()}.png`
-      cb(null, imageName)
+    var d = new Date();
+    var year  = d.getFullYear();
+    var month = d.getMonth() + 1;
+    var day   = d.getDate();
+    var hour  = ( d.getHours()   < 10 ) ? '0' + d.getHours()   : d.getHours();
+    var min   = ( d.getMinutes() < 10 ) ? '0' + d.getMinutes() : d.getMinutes();
+    var sec   = ( d.getSeconds() < 10 ) ? '0' + d.getSeconds() : d.getSeconds();
+    // print( year + '-' + month + '-' + day + ' ' + hour + ':' + min + ':' + sec );
+      
+    const imageName = `${req.body["address"]}_${year + '-' + month + '-' + day + '-' + hour + '-' + min + '-' + sec}.png`
+    cb(null, imageName)
   }
 })
 
