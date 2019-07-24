@@ -64,6 +64,9 @@ const storage = multer.diskStorage({
     var sec   = ( d.getSeconds() < 10 ) ? '0' + d.getSeconds() : d.getSeconds();
     // print( year + '-' + month + '-' + day + ' ' + hour + ':' + min + ':' + sec );
       
+  
+    console.log(req.body);
+    
     const imageName = `${req.body["address"]}_${year + '-' + month + '-' + day + '-' + hour + '-' + min + '-' + sec}.png`
     cb(null, imageName)
   }
