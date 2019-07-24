@@ -3,7 +3,7 @@ const multer = require('multer');
 const bodyParser = require('body-parser')
 const bitcoinMessage = require('bitcoinjs-message')
 const cors = require('cors')
-
+const mysql = require('mysql');
 
 const app = express()
 const messagePrefix = "\x19Monacoin Signed Message:\n"
@@ -55,6 +55,15 @@ const storage = multer.diskStorage({
   },
   
   filename: function (req, file, cb) {
+    let connection = mysql.createConnection({
+      host : 'localhost',
+      user : 'raiu',
+      password : 'raiu114514',
+      database: 'mona_marche'
+    });
+    connection.connect();
+
+    
     var d = new Date();
     var year  = d.getFullYear();
     var month = d.getMonth() + 1;
@@ -62,13 +71,27 @@ const storage = multer.diskStorage({
     var hour  = ( d.getHours()   < 10 ) ? '0' + d.getHours()   : d.getHours();
     var min   = ( d.getMinutes() < 10 ) ? '0' + d.getMinutes() : d.getMinutes();
     var sec   = ( d.getSeconds() < 10 ) ? '0' + d.getSeconds() : d.getSeconds();
-    // print( year + '-' + month + '-' + day + ' ' + hour + ':' + min + ':' + sec );
-      
-  
-    console.log(req.body);
-    
     const imageName = `${req.body["address"]}_${year + '-' + month + '-' + day + '-' + hour + '-' + min + '-' + sec}.png`
-    cb(null, imageName)
+    var SQL_VAR = "address, goods_name, discription, contact, price, currency, image_path, message, signature, alive"
+    var VALUES = "'" + req.body["address"] + "', " + 
+                 "'" + req.body["goods_name"] + "', " +
+                 "'" + req.body["discription"] + "', " +
+                 "'" + req.body["contact"] + "', " +
+                     + req.body["price"] + ", " +
+                 "'" + req.body["currency"] + "', " +
+                 "'./img/" + imageName + "'," +
+                 "'" + req.body["message"] + "', " +
+                 "'" + req.body["signature"] + "', " +
+                     + "1"
+
+    let insert_sql = "INSERT INTO goods_list (" + SQL_VAR + ") VALUES (" + VALUES + ");" 
+    connection.query(insert_sql, (err, rows, fields) => {
+      if (err) throw err;    
+      console.log(rows);
+    });
+    
+    connection.end();
+    cb(null, imageName) 
   }
 })
 
