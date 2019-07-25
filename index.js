@@ -23,10 +23,30 @@ var server = https.createServer(options,app);
 
 
 
-//index
+// index
 app.get('/', (req, res) => res.sendFile('./index.html'));
 
 
+// goods_list_api
+app.get('/goods_list', function(req, res) {
+  let connection = mysql.createConnection({
+    host : 'localhost',
+    user : 'raiu',
+    password : 'raiu114514',
+    database: 'mona_marche'
+  });
+  connection.connect();
+
+  const sql = "SELECT * FROM goods_list";
+  connection.query(sql, (err, rows, fields) => {
+    if (err) throw err;  
+    
+    var db_string = JSON.stringify(rows);
+    var goods_list_json = JSON.parse(db_string)
+    console.log(goods_list_json);
+    res.json(goods_list_json);
+  });
+})
 
 // about digital signature by mpurse
 app.post('/verify', function(req, res) {
