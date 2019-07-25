@@ -12,6 +12,7 @@ var fs = require('fs');
 var https = require('https');
 app.use(bodyParser.json())
 app.use(cors())
+app.use(express.static(__dirname));
 
 var options = {
   key:  fs.readFileSync('../../../ssl/localhost.key'),
@@ -19,6 +20,12 @@ var options = {
 };
 
 var server = https.createServer(options,app);
+
+
+
+//index
+app.get('/', (req, res) => res.sendFile('./index.html'));
+
 
 
 // about digital signature by mpurse
