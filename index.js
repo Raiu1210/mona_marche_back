@@ -106,7 +106,7 @@ const storage = multer.diskStorage({
                  "'" + req.body["contact"] + "', " +
                      + req.body["price"] + ", " +
                  "'" + req.body["currency"] + "', " +
-                 "'./img/" + imageName + "'," +
+                 "'/img/" + imageName + "'," +
                  "'" + req.body["message"] + "', " +
                  "'" + req.body["signature"] + "', " +
                      + "1"
