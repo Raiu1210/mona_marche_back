@@ -4,6 +4,7 @@ const bodyParser = require('body-parser')
 const bitcoinMessage = require('bitcoinjs-message')
 const cors = require('cors')
 const mysql = require('mysql');
+const url = require('url');
 
 const app = express()
 const messagePrefix = "\x19Monacoin Signed Message:\n"
@@ -37,16 +38,42 @@ app.get('/goods_list', function(req, res) {
   });
   connection.connect();
 
-  const sql = "SELECT * FROM goods_list";
+  const sql = "SELECT id, goods_name, contact, price, currency, image_path FROM goods_list";
   connection.query(sql, (err, rows, fields) => {
     if (err) throw err;  
     
     var db_string = JSON.stringify(rows);
     var goods_list_json = JSON.parse(db_string)
-    console.log(goods_list_json);
     res.json(goods_list_json);
   });
 })
+
+
+// goods_info_api
+app.get('/goods_detail', function(req, res) {
+  let connection = mysql.createConnection({
+    host : 'localhost',
+    user : 'raiu',
+    password : 'raiu114514',
+    database: 'mona_marche'
+  });
+  connection.connect();
+
+  var url_parts = url.parse(req.url, true);
+  var query = url_parts.query;
+  console.log(query["id"])
+
+  const sql = "SELECT * FROM goods_list WHERE id=" + query["id"];
+  connection.query(sql, (err, rows, fields) => {
+    if (err) throw err;  
+    
+    var db_string = JSON.stringify(rows);
+    var goods_info_json = JSON.parse(db_string)
+    console.log(goods_info_json);
+    res.json(goods_info_json);
+  });
+})
+
 
 // about digital signature by mpurse
 app.post('/verify', function(req, res) {
