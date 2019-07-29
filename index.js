@@ -38,7 +38,7 @@ app.get('/goods_list', function(req, res) {
   });
   connection.connect();
 
-  const sql = "SELECT id, goods_name, contact, price, currency, image_path FROM goods_list";
+  const sql = "SELECT id, goods_name, contact, price, currency, image_path FROM goods_list WHERE alive = 1";
   connection.query(sql, (err, rows, fields) => {
     if (err) throw err;  
     
@@ -61,7 +61,6 @@ app.get('/goods_detail', function(req, res) {
 
   var url_parts = url.parse(req.url, true);
   var query = url_parts.query;
-  console.log(query["id"])
 
   const sql = "SELECT * FROM goods_list WHERE id=" + query["id"];
   connection.query(sql, (err, rows, fields) => {
@@ -69,9 +68,32 @@ app.get('/goods_detail', function(req, res) {
     
     var db_string = JSON.stringify(rows);
     var goods_info_json = JSON.parse(db_string)
-    console.log(goods_info_json);
+    // console.log(goods_info_json);
     res.json(goods_info_json);
   });
+})
+
+
+// get_my_goods_list API
+app.post('/get_my_goods', function(req, res) {
+  const address = req.body.address;
+
+  let connection = mysql.createConnection({
+    host : 'localhost',
+    user : 'raiu',
+    password : 'raiu114514',
+    database: 'mona_marche'
+  });
+  connection.connect();
+
+  const sql = "SELECT * FROM goods_list WHERE address = '" + address + "'" + " AND alive = 1";
+    connection.query(sql, (err, rows, fields) => {
+      if (err) throw err;  
+      
+      var db_string = JSON.stringify(rows);
+      var goods_info_json = JSON.parse(db_string)
+      res.json(goods_info_json);
+    });
 })
 
 
@@ -93,13 +115,12 @@ app.post('/verify', function(req, res) {
   } else {
     var return_message = false
   }
-  console.log(return_message)
+  // console.log(return_message)
 
   res.send({
     message: return_message
   })
 })
-
 
 
 // about uploading goods_info
@@ -141,7 +162,7 @@ const storage = multer.diskStorage({
     let insert_sql = "INSERT INTO goods_list (" + SQL_VAR + ") VALUES (" + VALUES + ");" 
     connection.query(insert_sql, (err, rows, fields) => {
       if (err) throw err;    
-      console.log(rows);
+      // console.log(rows);
     });
     
     connection.end();
@@ -171,5 +192,45 @@ app.post('/image', (req, res) => {
       }
   })
 });
+
+
+// about delete goods
+app.post('/delete_goods', function(req, res) {
+  var date = new Date();
+  var a = date.getTime();
+  var address = req.body.address
+  var message = req.body.message
+  var signature = req.body.signature
+  var delete_id = req.body.delete_id
+
+  var signed_time = message.split(':');
+  var time_diff = a - parseInt(signed_time[1], 10)
+
+  var is_varify = bitcoinMessage.verify(message, address, signature, messagePrefix)
+
+  if(time_diff < 6000 && is_varify) {
+    let connection = mysql.createConnection({
+      host : 'localhost',
+      user : 'raiu',
+      password : 'raiu114514',
+      database: 'mona_marche'
+    });
+    connection.connect();
+
+    const sql = "UPDATE goods_list SET alive = 0 WHERE id = " + delete_id;
+    connection.query(sql, (err, rows, fields) => {
+      if (err) throw err;  
+      
+      res.send({
+        message: true
+      })
+    });
+  } else {
+    res.send({
+      message: false
+    })
+  }
+})
+
 
 server.listen(3000);
