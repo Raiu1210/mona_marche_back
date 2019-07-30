@@ -46,6 +46,8 @@ app.get('/goods_list', function(req, res) {
     var goods_list_json = JSON.parse(db_string)
     res.json(goods_list_json);
   });
+
+  connection.end();
 })
 
 
@@ -71,6 +73,8 @@ app.get('/goods_detail', function(req, res) {
     // console.log(goods_info_json);
     res.json(goods_info_json);
   });
+
+  connection.end();
 })
 
 
@@ -94,6 +98,8 @@ app.post('/get_my_goods', function(req, res) {
       var goods_info_json = JSON.parse(db_string)
       res.json(goods_info_json);
     });
+
+    connection.end();
 })
 
 
@@ -162,7 +168,6 @@ const storage = multer.diskStorage({
     let insert_sql = "INSERT INTO goods_list (" + SQL_VAR + ") VALUES (" + VALUES + ");" 
     connection.query(insert_sql, (err, rows, fields) => {
       if (err) throw err;    
-      // console.log(rows);
     });
     
     connection.end();
@@ -230,6 +235,58 @@ app.post('/delete_goods', function(req, res) {
       message: false
     })
   }
+  connection.end();
+})
+
+
+// about saving tx
+app.post('/save_tx', function(req, res) {
+  const from_address = req.body.from_address
+  const to_address = req.body.to_address
+  const tx_hash = req.body.tx_hash
+
+  let connection = mysql.createConnection({
+    host : 'localhost',
+    user : 'raiu',
+    password : 'raiu114514',
+    database: 'mona_marche'
+  });
+  connection.connect();
+
+  const values = "'" + from_address + "', " + "'" + to_address + "', " + "'" + tx_hash + "'"
+  const sql = "INSERT INTO tx_list (from_address, to_address, tx_hash) VALUES (" + values + ");"
+  connection.query(sql, (err, rows, fields) => {
+    if (err) throw err;    
+  });
+  
+  connection.end();
+})
+
+
+// get my tx list
+app.get('/tx_from_list', function(req, res) {
+  let connection = mysql.createConnection({
+    host : 'localhost',
+    user : 'raiu',
+    password : 'raiu114514',
+    database: 'mona_marche'
+  });
+  connection.connect();
+
+  var url_parts = url.parse(req.url, true);
+  var query = url_parts.query;
+
+  const sql = "SELECT * FROM tx_list WHERE from_address='" + query["from_address"] + "';";
+  connection.query(sql, (err, rows, fields) => {
+    if (err) throw err;  
+    
+    var db_string = JSON.stringify(rows);
+    var my_tx_list_json = JSON.parse(db_string)
+    console.log(my_tx_list_json);
+    res.json(my_tx_list_json);
+  });
+
+  connection.end();
 })
 
 
