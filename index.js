@@ -57,7 +57,8 @@ app.get('/goods_detail', function(req, res) {
     host : 'localhost',
     user : 'raiu',
     password : 'raiu114514',
-    database: 'mona_marche'
+    database: 'mona_marche',
+    timezone: 'jst'
   });
   connection.connect();
 
@@ -70,7 +71,6 @@ app.get('/goods_detail', function(req, res) {
     
     var db_string = JSON.stringify(rows);
     var goods_info_json = JSON.parse(db_string)
-    // console.log(goods_info_json);
     res.json(goods_info_json);
   });
 
@@ -86,7 +86,8 @@ app.post('/get_my_goods', function(req, res) {
     host : 'localhost',
     user : 'raiu',
     password : 'raiu114514',
-    database: 'mona_marche'
+    database: 'mona_marche',
+    timezone: 'jst'
   });
   connection.connect();
 
@@ -244,6 +245,7 @@ app.post('/save_tx', function(req, res) {
   const from_address = req.body.from_address
   const to_address = req.body.to_address
   const tx_hash = req.body.tx_hash
+  const price = req.body.price
 
   let connection = mysql.createConnection({
     host : 'localhost',
@@ -253,8 +255,9 @@ app.post('/save_tx', function(req, res) {
   });
   connection.connect();
 
-  const values = "'" + from_address + "', " + "'" + to_address + "', " + "'" + tx_hash + "'"
-  const sql = "INSERT INTO tx_list (from_address, to_address, tx_hash) VALUES (" + values + ");"
+  const values = "'" + from_address + "', " + "'" + to_address + "', " + price + ", " + "'" + tx_hash + "'"
+  const sql = "INSERT INTO tx_list (from_address, to_address, price, tx_hash) VALUES (" + values + ");"
+  console.log(sql)
   connection.query(sql, (err, rows, fields) => {
     if (err) throw err;    
   });
@@ -263,26 +266,53 @@ app.post('/save_tx', function(req, res) {
 })
 
 
-// get my tx list
-app.get('/tx_from_list', function(req, res) {
+// get tx from me list
+app.get('/tx_from_me_list', function(req, res) {
   let connection = mysql.createConnection({
     host : 'localhost',
     user : 'raiu',
     password : 'raiu114514',
-    database: 'mona_marche'
+    database: 'mona_marche',
+    timezone: 'jst'
   });
   connection.connect();
 
   var url_parts = url.parse(req.url, true);
   var query = url_parts.query;
 
-  const sql = "SELECT * FROM tx_list WHERE from_address='" + query["from_address"] + "';";
+  const sql = "SELECT price, tx_hash, timestamp FROM tx_list WHERE from_address='" + query["from_address"] + "';";
   connection.query(sql, (err, rows, fields) => {
     if (err) throw err;  
     
     var db_string = JSON.stringify(rows);
     var my_tx_list_json = JSON.parse(db_string)
-    console.log(my_tx_list_json);
+    res.json(my_tx_list_json);
+  });
+
+  connection.end();
+})
+
+
+// get tx to me list
+app.get('/tx_to_me_list', function(req, res) {
+  let connection = mysql.createConnection({
+    host : 'localhost',
+    user : 'raiu',
+    password : 'raiu114514',
+    database: 'mona_marche',
+    timezone: 'jst'
+  });
+  connection.connect();
+
+  var url_parts = url.parse(req.url, true);
+  var query = url_parts.query;
+
+  const sql = "SELECT price, tx_hash, timestamp FROM tx_list WHERE to_address='" + query["to_address"] + "';";
+  connection.query(sql, (err, rows, fields) => {
+    if (err) throw err;  
+    
+    var db_string = JSON.stringify(rows);
+    var my_tx_list_json = JSON.parse(db_string)
     res.json(my_tx_list_json);
   });
 
