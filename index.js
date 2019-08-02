@@ -236,7 +236,6 @@ app.post('/delete_goods', function(req, res) {
       message: false
     })
   }
-  connection.end();
 })
 
 
