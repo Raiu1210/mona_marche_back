@@ -122,7 +122,6 @@ app.post('/verify', function(req, res) {
   } else {
     var return_message = false
   }
-  // console.log(return_message)
 
   res.send({
     message: return_message
@@ -183,16 +182,13 @@ const upload = multer({
 app.post('/image', (req, res) => {
   upload(req, res, (err) => {
       if (err) {
-          //アップロード失敗した場合
           res.json({
               status: "error",
               error: "fail to uplord image"
           })
       } else {
-          //アップロード成功した場合
           res.json({
               status: "sucess",
-              // ファイル名を返す
               path: res.req.file.filename
           })
       }
@@ -214,7 +210,7 @@ app.post('/delete_goods', function(req, res) {
 
   var is_varify = bitcoinMessage.verify(message, address, signature, messagePrefix)
 
-  if(time_diff < 6000 && is_varify) {
+  if(time_diff < 6000 && time_diff > 0 && is_varify) {
     let connection = mysql.createConnection({
       host : 'localhost',
       user : 'raiu',
@@ -256,7 +252,6 @@ app.post('/save_tx', function(req, res) {
 
   const values = "'" + from_address + "', " + "'" + to_address + "', " + price + ", " + "'" + tx_hash + "'"
   const sql = "INSERT INTO tx_list (from_address, to_address, price, tx_hash) VALUES (" + values + ");"
-  console.log(sql)
   connection.query(sql, (err, rows, fields) => {
     if (err) throw err;    
   });
