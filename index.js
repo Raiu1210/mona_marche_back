@@ -117,7 +117,7 @@ app.post('/verify', function(req, res) {
 
   var is_varify = bitcoinMessage.verify(message, address, signature, messagePrefix)
 
-  if(time_diff < 6000 && is_varify) {
+  if(time_diff < 6000 && time_diff > 0 && is_varify) {
     var return_message = true
   } else {
     var return_message = false
