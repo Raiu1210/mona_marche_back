@@ -38,7 +38,7 @@ app.get('/goods_list', function(req, res) {
   });
   connection.connect();
 
-  const sql = "SELECT id, goods_name, contact, price, currency, image_path FROM goods_list WHERE alive = 1";
+  const sql = "SELECT id, goods_name, contact, price, amount, currency, image_path FROM goods_list WHERE alive = 1";
   connection.query(sql, (err, rows, fields) => {
     if (err) throw err;  
     
@@ -153,12 +153,13 @@ const storage = multer.diskStorage({
     var min   = ( d.getMinutes() < 10 ) ? '0' + d.getMinutes() : d.getMinutes();
     var sec   = ( d.getSeconds() < 10 ) ? '0' + d.getSeconds() : d.getSeconds();
     const imageName = `${req.body["address"]}_${year + '-' + month + '-' + day + '-' + hour + '-' + min + '-' + sec}.png`
-    var SQL_VAR = "address, goods_name, discription, contact, price, currency, image_path, message, signature, alive"
+    var SQL_VAR = "address, goods_name, discription, contact, price, amount, currency, image_path, message, signature, alive"
     var VALUES = "'" + req.body["address"] + "', " + 
                  "'" + req.body["goods_name"] + "', " +
                  "'" + req.body["discription"] + "', " +
                  "'" + req.body["contact"] + "', " +
                      + req.body["price"] + ", " +
+                     + req.body["amount"] + ", " +
                  "'" + req.body["currency"] + "', " +
                  "'/img/" + imageName + "'," +
                  "'" + req.body["message"] + "', " +
@@ -166,6 +167,7 @@ const storage = multer.diskStorage({
                      + "1"
 
     let insert_sql = "INSERT INTO goods_list (" + SQL_VAR + ") VALUES (" + VALUES + ");" 
+
     connection.query(insert_sql, (err, rows, fields) => {
       if (err) throw err;    
     });
@@ -237,6 +239,7 @@ app.post('/delete_goods', function(req, res) {
 
 // about saving tx
 app.post('/save_tx', function(req, res) {
+  const id = req.body.id;
   const from_address = req.body.from_address
   const to_address = req.body.to_address
   const tx_hash = req.body.tx_hash
@@ -249,6 +252,11 @@ app.post('/save_tx', function(req, res) {
     database: 'mona_marche'
   });
   connection.connect();
+
+  const decrement_sql = "UPDATE goods_list SET amount = amount-1 WHERE id = " + id + ";"
+  connection.query(decrement_sql, (err, rows, fields) => {
+    if (err) throw err;    
+  });
 
   const values = "'" + from_address + "', " + "'" + to_address + "', " + price + ", " + "'" + tx_hash + "'"
   const sql = "INSERT INTO tx_list (from_address, to_address, price, tx_hash) VALUES (" + values + ");"
